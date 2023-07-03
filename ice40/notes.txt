@@ -1,0 +1,27 @@
+# chip.fail glitcher for Lattice ice40 FPGA
+
+These are copies of the Verilog files found in Xilinx project (without the clock wizard)
+adapted for the Lattice ice40 FPGA found on the Trenz IceZero with Lattice ICE40HX, 4 Mbit
+external SRAM board.
+
+Board has a 100 MHz oscilator.
+
+# TODO
+
+Add the testbench to Makefile (was tested manually).
+
+$ ../../iverilog/install/bin/iverilog -o glitcher.vvp *.v
+$ ../../iverilog/install/bin/vvp glitcher.vvp -ltx2
+VCD info: dumpfile top_tb.vcd opened for output.
+top_tb.v:29: $finish called at 3000000000 (1ps)
+
+Check the pins on the real hardware.
+
+Test the design on the real hardware!
+
+Document the installation of the IceStorm tools et.al.
+
+Using the RPi to program the FPGA.
+
+Can the RPi be used as the serial interface (directly on the 40 pin header).
+
