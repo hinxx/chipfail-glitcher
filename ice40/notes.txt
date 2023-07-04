@@ -1,27 +1,183 @@
-# chip.fail glitcher for Lattice ice40 FPGA
+# Working with Trenz IceZero w/ Lattice ICE40HX
 
-These are copies of the Verilog files found in Xilinx project (without the clock wizard)
-adapted for the Lattice ice40 FPGA found on the Trenz IceZero with Lattice ICE40HX, 4 Mbit
-external SRAM board.
+## programming tool
 
-Board has a 100 MHz oscilator.
+Several options are available online, Rpi GPIO, FTDI MSSE, ..
 
-# TODO
+### Using FTDI FT4232
 
-Add the testbench to Makefile (was tested manually).
+See:
 
-$ ../../iverilog/install/bin/iverilog -o glitcher.vvp *.v
-$ ../../iverilog/install/bin/vvp glitcher.vvp -ltx2
-VCD info: dumpfile top_tb.vcd opened for output.
-top_tb.v:29: $finish called at 3000000000 (1ps)
+https://github.com/adafruit/ftdiflash/
 
-Check the pins on the real hardware.
+If uses libftdi:
 
-Test the design on the real hardware!
+https://www.intra2net.com/en/developer/libftdi/
 
-Document the installation of the IceStorm tools et.al.
+To get ftdiflash compiled without udev compile libusb and libftdi from source!
 
-Using the RPi to program the FPGA.
+./ftdiflash -I A -t -d i:0x0403:0x6011
+init..
+reset..
+flash ID: 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60
+Bye.
 
-Can the RPi be used as the serial interface (directly on the 40 pin header).
+time ./ftdiflash -I A -d i:0x0403:0x6011 ../icotools/examples/icezero/icezero.bin
+init..
+reset..
+flash ID: 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60
+file size: 135100
+erase 64kB sector at 0x000000..
+erase 64kB sector at 0x010000..
+erase 64kB sector at 0x020000..
+programming..
+reading..
+VERIFY OK
+Bye.
+
+
+### Using RTk.GPIO
+
+NOTE:   I can program the FLASH chip with it but it is very slow.. about
+        half an hour to program icezero.bin (135100 bytes) !!!
+
+Emulates RPi 40pin header and provides python access to the pins.
+
+Found at:
+    https://github.com/PiSupply/Ryanteck/tree/master
+
+Install in local python venv:
+
+    cd RTK.GPIO/Software
+    pip install -e .
+
+Now the RTk can be used with python based programmer from:
+
+    https://github.com/blackmesalabs/ice_zero_prog
+
+The code needs the following changes to make it work:
+ * replace `RPi.GPIO` with `RTk.GPIO`,
+ * add support for FLASH Release from Deep PowerDown,
+ * support for recognizing ISSI 8MB flash (IS25LP064A)
+
+After that the flash chip is recognized:
+
+    RTk.GPIO Found on port: /dev/ttyUSB0
+    Found ISSI 25LP064A 8.0 MBytes
+
+## Verilog tools
+
+icestorm:
+
+    git clone https://github.com/YosysHQ/icestorm.git icestorm
+    cd icestorm
+    make -j6 PREFIX=/home/hinxx/Projects/ice40/tools/install
+    make install PREFIX=/home/hinxx/Projects/ice40/tools/install
+
+nextpnr:
+
+    git clone https://github.com/YosysHQ/nextpnr nextpnr
+    cd nextpnr
+    cmake -DARCH=ice40 -DCMAKE_INSTALL_PREFIX=/home/hinxx/Projects/ice40/tools/install
+    make -j6
+    make install
+
+yosys:
+
+    git clone https://github.com/YosysHQ/yosys.git
+    cd yosys
+    make -j6 PREFIX=/home/hinxx/Projects/ice40/tools/install
+    make install PREFIX=/home/hinxx/Projects/ice40/tools/install
+
+iverilog:
+
+    git clone https://github.com/steveicarus/iverilog.git
+    cd iverilog
+    ./configure --prefix=/home/hinxx/Projects/ice40/tools/install
+    make -j6
+    make install
+
+
+
+Set the PATH to the location of the tools:
+
+    export PATH=/home/hinxx/Projects/ice40/tools/install/bin:$PATH
+
+## Examples
+
+There is a fitting example called `icezero` at that can be used to blink all three LEDs:
+
+    git clone https://github.com/cliffordwolf/icotools.git
+    cd icotools/examples/icezero
+
+    make
+
+
+## Glitcher
+
+See https://chip.fail/ and https://github.com/chipfail/chipfail-glitcher.
+
+Support for ice40 was added here:
+
+    git clone git@github.com:hinxx/chipfail-glitcher.git
+
+    make
+
+...
+// Timing estimate: 8.12 ns (123.10 MHz)
+// Checking 10.00 ns (100.00 MHz) clock constraint: PASSED.
+
+Burn the bitfile to flash:
+
+    ./ftdiflash -I A -d i:0x0403:0x6011 ../chipfail-glitcher/ice40/glithcher.bin
+    init..
+    reset..
+    flash ID: 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60 0x17 0x9D 0x60
+    file size: 135100
+    erase 64kB sector at 0x000000..
+    erase 64kB sector at 0x010000..
+    erase 64kB sector at 0x020000..
+    programming..
+    reading..
+    VERIFY OK
+    Bye.
+
+## Python code
+
+Serial port is 115200 1N8.
+Trying out minicom results in not responses.
+
+See the original repo for python notebook code. Converted to python here.
+
+Testing the first part:
+
+    $ python chipfail-glitcher.py
+    Power pulse   : 0
+    Trigger status: 0
+    Delay status  : 0
+    Glitch pulse  : 0
+    Step one, power pulse:
+    Power pulse   : 1
+    Trigger status: 0
+    Delay status  : 0
+    Glitch pulse  : 0
+    Step two, trigger
+    Power pulse   : 0
+    Trigger status: 2
+    Delay status  : 0
+    Glitch pulse  : 0
+    \tWaiting for pin to go low...
+    \tWaiting for pin to go high...
+    Step three, delay:
+    Power pulse   : 0
+    Trigger status: 0
+    Delay status  : 1
+    Glitch pulse  : 0
+    Step four, glitch pulse:
+    Power pulse   : 0
+    Trigger status: 0
+    Delay status  : 0
+    Glitch pulse  : 1
+    Done, if you get here it means everything is working!
+
 
