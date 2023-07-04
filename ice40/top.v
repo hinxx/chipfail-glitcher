@@ -2,13 +2,15 @@
 
 module top(
     input sys_clk,
-    output [1:0] led,  // Led outputs
+    // output [1:0] led,  // Led outputs
+    // HK use third LED
+    output [2:0] led,  // Led outputs
     output [2:0] rgb,  // RGB led
     input [1:0] btn, // buttons
     input [7:0] gpio, // GPIOs
     input uart_txd_in, // This is the RX input.. thanks for the naming digilent :D
     output uart_rxd_out, // This is the TX output
-    
+
     input trigger_in,
     output power_out,
     output glitch_out
@@ -128,7 +130,7 @@ assign rgb = state[2:0];
 
 
 // power pulse
-// only used in glitch chain if glitch_power_cycle is 1 
+// only used in glitch chain if glitch_power_cycle is 1
 reg power_pulse_enable = 1'd0;
 wire power_pulse_pulse;
 wire power_pulse_done;
@@ -193,8 +195,10 @@ pulse glitch_pulse(
 
 assign led[0] = power_pulse_pulse;
 assign led[1] = glitch_pulse_pulse;
+assign led[2] = ! rx_valid;
+
 assign power_out = power_pulse_pulse;
-// We also pull glitch high when power resetting to make sure we don't accidentally keep the core on 
+// We also pull glitch high when power resetting to make sure we don't accidentally keep the core on
 assign glitch_out = power_pulse_pulse || glitch_pulse_pulse;
 
 always @(posedge main_clk)
@@ -206,10 +210,10 @@ begin
     power_pulse_length <= power_pulse_length;
     power_pulse_enable <= 1'd0;
     glitch_power_cycle <= glitch_power_cycle;
-    
+
     glitch_trigger_enable <= 1'd0;
     disable_trigger <= disable_trigger;
-    
+
     state <= state;
     tx_enable <= 1'b0;
 
@@ -245,7 +249,7 @@ begin
                     end
                     CMD_GLITCH:
                     begin
-                        // If glitch with power cycle is enabled we 
+                        // If glitch with power cycle is enabled we
                         // use the power pulse to start the glitch
                         // (which will then in turn start the trigger)
                         if(glitch_power_cycle == 1'b1)
@@ -269,10 +273,10 @@ begin
                         tx_data <= {power_pulse_state, glitch_trigger_state, glitch_delay_state, glitch_pulse_state};
                         tx_enable <= 1'b1;
                     end
-                    
+
                 endcase
             end
-            
+
         end
         STATE_SET_GLITCH_PULSE:
         begin
