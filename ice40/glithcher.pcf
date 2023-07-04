@@ -1,0 +1,32 @@
+
+set_io sys_clk          49      # 100 MHz external clock
+
+set_io led[0]           110     # LED1
+set_io led[1]           93      # LED2
+set_io led[2]           94      # LED3
+
+set_io btn[0]           141     # unused
+set_io btn[1]           139     # unused
+
+set_io uart_txd_in      112     # PI_UART_RO input from PC (TxD)
+set_io uart_rxd_out     113     # PI_UART_WI output to PC (RxD)
+
+set_io trigger_in       136     # PL_GPIO_0
+set_io power_out        135     # PL_GPIO_1
+set_io glitch_out       134     # PL_GPIO_2
+
+# set_io gpio_7  130
+
+# gpio 8 .. 15
+set_io gpio[0]  55
+set_io gpio[1]  56
+set_io gpio[2]  47
+set_io gpio[3]  48
+set_io gpio[4]  44
+set_io gpio[5]  45
+set_io gpio[6]  42
+set_io gpio[7]  43
+
+set_io rgb[0]           41      # not present
+set_io rgb[1]           39      # not present
+set_io rgb[2]           38      # not present

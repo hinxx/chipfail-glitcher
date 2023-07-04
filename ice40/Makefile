@@ -1,35 +1,27 @@
 
-all: icezero.bin
+all: glithcher.bin
 
-prog: icezero.bin icezprog
-	./icezprog icezero.bin
+# prog: icezero.bin icezprog
+# 	./icezprog icezero.bin
 
-reset: icezprog
-	./icezprog .
+# reset: icezprog
+# 	./icezprog .
 
-icezprog: icezprog.c
-	gcc -o icezprog -Wall -Os icezprog.c -lwiringPi -lrt -lstdc++
+# icezprog: icezprog.c
+# 	gcc -o icezprog -Wall -Os icezprog.c -lwiringPi -lrt -lstdc++
 
-icezero.blif: top.v pulse.v delay.v trigger.v uart_rx.v uart_tx.v uint32_receiver.v memdata.dat defines.vh
-	yosys -p 'synth_ice40 -top top -blif icezero.blif' top.v pulse.v delay.v trigger.v uart_rx.v uart_tx.v uint32_receiver.v
+glithcher.blif: top.v pulse.v delay.v trigger.v uart_rx.v uart_tx.v uint32_receiver.v memdata.dat defines.vh
+	yosys -p 'synth_ice40 -top top -blif glithcher.blif' top.v pulse.v delay.v trigger.v uart_rx.v uart_tx.v uint32_receiver.v
 
-icezero.json: top.v pulse.v delay.v trigger.v uart_rx.v uart_tx.v uint32_receiver.v memdata.dat defines.vh
-	yosys -p 'synth_ice40 -top top -json icezero.json' top.v pulse.v delay.v trigger.v uart_rx.v uart_tx.v uint32_receiver.v
+glithcher.json: top.v pulse.v delay.v trigger.v uart_rx.v uart_tx.v uint32_receiver.v memdata.dat defines.vh
+	yosys -p 'synth_ice40 -top top -json glithcher.json' top.v pulse.v delay.v trigger.v uart_rx.v uart_tx.v uint32_receiver.v
 
-#icezero.asc: icezero.blif icezero.pcf
-icezero.asc: icezero.json icezero.pcf
-	nextpnr-ice40 --hx8k --package tq144:4k --pcf icezero.pcf --asc icezero.asc --json icezero.json
+glithcher.asc: glithcher.json glithcher.pcf
+	nextpnr-ice40 --hx4k --package tq144 --pcf glithcher.pcf --asc glithcher.asc --json glithcher.json
 
-icezero.bin: icezero.asc
-#	icetime -d hx8k -c 25 icezero.asc
-	icetime -d hx8k -c 100 icezero.asc
-	icepack icezero.asc icezero.bin
-
-# SUCCESS!!
-# ...
-# // Timing estimate: 9.03 ns (110.76 MHz)
-# // Checking 40.00 ns (25.00 MHz) clock constraint: PASSED.
-# icepack icezero.asc icezero.bin
+glithcher.bin: glithcher.asc
+	icetime -d hx4k -c 100 glithcher.asc
+	icepack glithcher.asc glithcher.bin
 
 memdata.dat: generate.py
 	python3 generate.py
@@ -44,7 +36,7 @@ testbench.vcd: testbench
 
 clean:
 	rm -f testbench testbench.vcd
-	rm -f icezero.blif icezero.json icezero.asc icezero.bin
+	rm -f glithcher.blif glithcher.json glithcher.asc glithcher.bin
 	rm -f memdata.dat defines.vh
 
 .PHONY: all prog reset clean
