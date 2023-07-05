@@ -89,9 +89,11 @@ parse_status(status)
 # then a delay of 1 second is executed and then finally a 1 second glitch-pulse
 # will be put out on port 48/LED2.
 
-cmd_uint32(device, CMD_SET_POWER_PULSE, 100_000_000)
+# cmd_uint32(device, CMD_SET_POWER_PULSE, 100_000_000)
+cmd_uint32(device, CMD_SET_POWER_PULSE, 100_000)
 cmd_uint32(device, CMD_SET_DELAY, 100_000_000)
-cmd_uint32(device, CMD_SET_GLITCH_PULSE, 100_000_000)
+# cmd_uint32(device, CMD_SET_GLITCH_PULSE, 100_000_000)
+cmd_uint32(device, CMD_SET_GLITCH_PULSE, 100_000)
 cmd_uint8(device, CMD_ENABLE_GLITCH_POWER_CYCLE, 1)
 
 cmd(device, CMD_GLITCH)
@@ -136,14 +138,16 @@ for delay in trange(DELAY_FROM, DELAY_TO):
         # This avoids having to manually time the glitch :)
         while(cmd_read_uint8(device, CMD_GET_STATE)):
             pass
+
+        # TODO: GPIOs are not connected anywhere at the moment
         # Check whether the glitch was successful!
-        gpios = cmd_read_uint8(device, CMD_READ_GPIO)
-        if gpios:
-            print("*** SUCCESS ***")
-            print("Delay: " + str(delay))
-            print("Pulse: " + str(pulse))
-            success = True
-            break
+        # gpios = cmd_read_uint8(device, CMD_READ_GPIO)
+        # if gpios:
+        #     print("*** SUCCESS ***")
+        #     print("Delay: " + str(delay))
+        #     print("Pulse: " + str(pulse))
+        #     success = True
+        #     break
 
 # Show status of IOs
 print(format(cmd_read_uint8(device, CMD_READ_GPIO), '#010b'))
